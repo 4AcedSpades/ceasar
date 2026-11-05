@@ -6,8 +6,11 @@ import os
 import time
 
 filePath = ''
+alphabet = []
+result = ''
+reply = False
 
-def mainMenu(): # Contains the menu for the program.
+def mainMenuPrintout(): # Contains the menu for the program.
     """<h2>Displays a menu containing 3 options:</h2>
     <p>1 - Start a message: Creates a message with an alphabet, shift, and starting message, before saving it.</p>
     <p>2 - Read & Reply to a message: Prompts for a file, decoding the message before asking if the user would like to reply.</p>
@@ -21,20 +24,22 @@ def mainMenu(): # Contains the menu for the program.
     print("3. Quit")
 
 
-def getMenuChoice(choice):
+def MainMenu(choice):
     """<h2>Validates the choice.</h2>"""
-    while True:    
+    while True: 
+        mainMenuPrintout()   
         choice = input("> ")
-        if choice == 1:
-            getAlpha()
-            getShift()
-            createMsg()
+        if int(choice) == 1:
+            filePath = createFile(filePath)
+            alphabet = getAlpha(filePath)
+            shift = getShift(filePath)
+            createMsg(filePath, alphabet, shift)
             
-        elif choice == 2:
-            readMsg()
-            replyMsg()
+        elif int(choice) == 2:
+            readMsg(filePath)
+            replyMsg(filePath, alphabet, shift)
     
-        elif choice == 3:
+        elif int(choice) == 3:
             exit()
     
         else:
@@ -45,7 +50,7 @@ def getAlpha(path):
     """<h2>Prompts the user to type an alphabet to be stored in a .txt file.</h2>"""
     print("Please type the alphabet that will be used for decoding (case-sensitive)")
     choice = input("> ")
-    with open(path, "a") as file:          
+    with open(path, "a") as file:         
         file.write(choice)
     alphabet = [char for char in choice]
     return alphabet
@@ -59,7 +64,7 @@ def getShift(path):
     shift = choice; shift = int(shift)
     return shift
 
-def encrypt(msg:str,mode:int,shift:int,alphabet:list,path:str):
+def encrypt(msg:str,mode:int,shift:int,alphabet:list):
     """<h2>Encrypts or decrypts a given message.</h2>
     <p>This function takes the given message, and then translates it through the provided shift & alphabet given.</p>"""
     result = ""
@@ -69,21 +74,56 @@ def encrypt(msg:str,mode:int,shift:int,alphabet:list,path:str):
     else:
         shift = shift * -1
     for char in message:
-        result += alphabet[(alphabet.index(char) + shift)]
+        try:
+            result += alphabet[(alphabet.index(char) + shift) % len(alphabet)]
+        except IndexError:
+            print(f"Letter {char} is out of range. Skipping...")
+        except ValueError:
+            print(f"Letter {char} is not in the specified alphabet. Skipping...")
     return result
 
-def createMsg():
+def createMsg(filePath:str, alphabet:str, shift:int):
     """<h2>Creates a message and stores it in the filepath provided.<h2>
     <p>Uses encrypt() to shift the message.</p>"""
+    msg = input("In one line, please type the message you'd like to send: ")
+    result = encrypt(msg, 0, shift, alphabet)
+    with open(filePath, "a") as file:
+        file.write(f"\n{result}")
+    print(f"Original Text: {msg}")
+    print(f"Modified Text: {result}")
+
+def readMsg(filePath):
+    """Reads message(s) from a file."""
+    clr()
+    filePath = input("Please type the file you'd like to read: ")
+    readmsgs = []
+    with open(filePath, "r") as file:
+        content = file.readlines()
+    alphabet = list(content[0].rstrip("\n"))
+    print(alphabet) #DEBUG
+    shift = int(content[1].strip())
+    messages = content[2:]
+    for msg in messages:
+        result = encrypt(msg.strip(), 1, shift, alphabet)
+        readmsgs.append(result)
+    print("Decoded Messages:")
+    for msg in readmsgs:
+        print(msg)
+    choice = input("Would you like to add a message to the decoded file? (y/n) ")
+    reply = choice.lower() == "y"
+    return filePath, reply, alphabet, shift
+
+
+
+def replyMsg(filePath, alphabet, shift, reply):
+    """<h2>Appends a message to an already existing file.</h2>"""
     print("In one line, please type the message you'd like to send.")
     msg = input("> ")
-    return msg
-
-def readMsg():
-    """<h2>Reads message(s) from a file.</h2>"""
-
-def replyMsg():
-    """<h2>Appends a message to an already existing file.</h2>"""
+    encrypt(msg, 0, shift, alphabet)
+    with open(filePath, "a") as file:
+        file.write(f"\n{result}")
+    print(f"Original Text: {msg}")
+    print(f"Modified Text: {result}")
 
 def clr():
     os.system("cls" if os.name == "nt" else "clear")
@@ -107,9 +147,9 @@ def createFile(filePath):
             time.sleep(2)
 
 if __name__ == "__main__":
-    filePath = createFile(filePath)
-    alphabet = getAlpha(filePath)
-    shift = getShift(filePath)
-    message = createMsg()
-    result = encrypt(message,0,shift,alphabet,filePath)
-    print(result)
+    # filePath = createFile(filePath)
+    # alphabet = getAlpha(filePath)
+    # shift = getShift(filePath)
+    # message = createMsg(filePath, alphabet, shift)
+    filePath, reply, alphabet, shift = readMsg(filePath)
+    print(alphabet)
