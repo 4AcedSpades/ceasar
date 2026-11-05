@@ -4,9 +4,7 @@ It's important to keep this file, otherwise the main program will not function p
 """
 import os
 import time
-
 filePath = ''
-alphabet = []
 result = ''
 reply = False
 
@@ -16,7 +14,7 @@ def mainMenuPrintout(): # Contains the menu for the program.
     <p>2 - Read & Reply to a message: Prompts for a file, decoding the message before asking if the user would like to reply.</p>
     <p>3 - Quit: Runs exit(), closing the program.
     <p>Anything other than 1 - 3 will not be validated, displaying the menu again.</p>"""
-
+    clr()
     print("CAESAR CIPHER MESSAGING")
     print("-----------------------")
     print("1. Start a message")
@@ -24,30 +22,17 @@ def mainMenuPrintout(): # Contains the menu for the program.
     print("3. Quit")
 
 
-def MainMenu(choice):
-    """<h2>Validates the choice.</h2>"""
-    while True: 
-        mainMenuPrintout()   
-        choice = input("> ")
-        if int(choice) == 1:
-            filePath = createFile(filePath)
-            alphabet = getAlpha(filePath)
-            shift = getShift(filePath)
-            createMsg(filePath, alphabet, shift)
-            
-        elif int(choice) == 2:
-            readMsg(filePath)
-            replyMsg(filePath, alphabet, shift)
-    
-        elif int(choice) == 3:
-            exit()
-    
-        else:
-            print("Please provide a valid action.")
+def MainMenu():
+    """<h2>Handles the choices and main code.</h2>"""  
+    choice = input("> ")
+    choice = int(choice)
+    return choice
+        
         
 
 def getAlpha(path):
     """<h2>Prompts the user to type an alphabet to be stored in a .txt file.</h2>"""
+    clr()
     print("Please type the alphabet that will be used for decoding (case-sensitive)")
     choice = input("> ")
     with open(path, "a") as file:         
@@ -57,6 +42,7 @@ def getAlpha(path):
 
 def getShift(path):
     """<h2>Prompts the user to type a shift to be stored in a .txt file.</h2>"""
+    clr()
     print("Please type the shift that will be used for decoding")
     choice = input("> ")
     with open(path, "a") as file:          
@@ -88,7 +74,7 @@ def createMsg(filePath:str, alphabet:str, shift:int):
     msg = input("In one line, please type the message you'd like to send: ")
     result = encrypt(msg, 0, shift, alphabet)
     with open(filePath, "a") as file:
-        file.write(f"\n{result}")
+        file.writelines(f"\n{result}")
     print(f"Original Text: {msg}")
     print(f"Modified Text: {result}")
 
@@ -100,7 +86,6 @@ def readMsg(filePath):
     with open(filePath, "r") as file:
         content = file.readlines()
     alphabet = list(content[0].rstrip("\n"))
-    print(alphabet) #DEBUG
     shift = int(content[1].strip())
     messages = content[2:]
     for msg in messages:
@@ -115,13 +100,15 @@ def readMsg(filePath):
 
 
 
-def replyMsg(filePath, alphabet, shift, reply):
+def replyMsg(filePath, reply, alphabet, shift):
     """<h2>Appends a message to an already existing file.</h2>"""
+    if not reply:
+        return
     print("In one line, please type the message you'd like to send.")
     msg = input("> ")
-    encrypt(msg, 0, shift, alphabet)
+    result = encrypt(msg, 0, shift, alphabet)
     with open(filePath, "a") as file:
-        file.write(f"\n{result}")
+        file.writelines(f"\n{result}")
     print(f"Original Text: {msg}")
     print(f"Modified Text: {result}")
 
@@ -146,10 +133,13 @@ def createFile(filePath):
             print("Could not find the directory specified.")
             time.sleep(2)
 
+def returntomenu():
+    decision = input("Would you like to return to menu? (Y/N): ")
+    if decision.lower() == "y":
+        return
+    else:
+        exit()
+
 if __name__ == "__main__":
-    # filePath = createFile(filePath)
-    # alphabet = getAlpha(filePath)
-    # shift = getShift(filePath)
-    # message = createMsg(filePath, alphabet, shift)
     filePath, reply, alphabet, shift = readMsg(filePath)
-    print(alphabet)
+    replyMsg(filePath=filePath, alphabet=alphabet, shift=shift, reply=reply)
