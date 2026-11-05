@@ -85,7 +85,7 @@ def readMsg(filePath):
     readmsgs = []
     with open(filePath, "r") as file:
         content = file.readlines()
-    alphabet = list(content[0].rstrip("\n"))
+    alphabet = list(content[0].rstrip())
     shift = int(content[1].strip())
     messages = content[2:]
     for msg in messages:
